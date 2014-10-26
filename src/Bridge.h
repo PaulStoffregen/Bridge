@@ -107,6 +107,13 @@ class SerialBridgeClass : public BridgeClass {
       stream = port;
     }
 
+    void begin(HardwareSerial &_serial, unsigned long baudrate = 250000) {
+      serial = _serial;
+      stream = _serial;
+      serial.begin(baudrate);
+      BridgeClass::begin();
+    }
+
   private:
     HardwareSerial &serial;
 };
