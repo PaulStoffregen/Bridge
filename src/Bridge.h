@@ -81,7 +81,7 @@ class BridgeClass {
     bool crcCheck(uint16_t _CRC);
     uint16_t CRC;
 
-  private:
+  protected:
     static const char CTRL_C = 3;
     Stream &stream;
     bool started;
@@ -99,6 +99,12 @@ class SerialBridgeClass : public BridgeClass {
     void begin(unsigned long baudrate = 250000) {
       serial.begin(baudrate);
       BridgeClass::begin();
+    }
+
+    // allow the user to begin with another port, which
+    // must already be running at the correct baud rate
+    void begin(Stream &port) {
+      stream = port;
     }
 
   private:
