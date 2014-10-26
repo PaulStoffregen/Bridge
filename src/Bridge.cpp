@@ -240,7 +240,7 @@ void BridgeClass::dropAll() {
 }
 
 // Bridge instance
-#ifdef __AVR_ATmega32U4__
+#if defined(__AVR_ATmega32U4__) || defined(SERIAL_PORT_USBVIRTUAL)
 // Leonardo variants (where HardwareSerial is Serial1)
 SerialBridgeClass Bridge(Serial1);
 #else
