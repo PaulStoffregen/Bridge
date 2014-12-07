@@ -105,6 +105,7 @@ class SerialBridgeClass : public BridgeClass {
     // must already be running at the correct baud rate
     void begin(Stream &port) {
       stream = &port;
+      BridgeClass::begin();
     }
 
     void begin(HardwareSerial &_serial, unsigned long baudrate = 250000) {
