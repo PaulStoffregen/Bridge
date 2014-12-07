@@ -83,7 +83,7 @@ class BridgeClass {
 
   protected:
     static const char CTRL_C = 3;
-    Stream &stream;
+    Stream *stream;
     bool started;
     uint8_t max_retries;
 };
@@ -92,30 +92,30 @@ class BridgeClass {
 class SerialBridgeClass : public BridgeClass {
   public:
     SerialBridgeClass(HardwareSerial &_serial)
-      : BridgeClass(_serial), serial(_serial) {
+      : BridgeClass(_serial), serial(&_serial) {
       // Empty
     }
 
     void begin(unsigned long baudrate = 250000) {
-      serial.begin(baudrate);
+      serial->begin(baudrate);
       BridgeClass::begin();
     }
 
     // allow the user to begin with another port, which
     // must already be running at the correct baud rate
     void begin(Stream &port) {
-      stream = port;
+      stream = &port;
     }
 
     void begin(HardwareSerial &_serial, unsigned long baudrate = 250000) {
-      serial = _serial;
-      stream = _serial;
-      serial.begin(baudrate);
+      serial = &_serial;
+      serial->begin(baudrate);
+      stream = &_serial;
       BridgeClass::begin();
     }
 
   private:
-    HardwareSerial &serial;
+    HardwareSerial *serial;
 };
 
 extern SerialBridgeClass Bridge;

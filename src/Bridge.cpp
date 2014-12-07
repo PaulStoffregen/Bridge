@@ -19,7 +19,7 @@
 #include "Bridge.h"
 
 BridgeClass::BridgeClass(Stream &_stream) :
-  index(0), stream(_stream), started(false), max_retries(0) {
+  index(0), stream(&_stream), started(false), max_retries(0) {
   // Empty
 }
 
@@ -32,7 +32,7 @@ void BridgeClass::begin() {
   do {
     dropAll();
     delay(1000);
-  } while (stream.available() > 0);
+  } while (stream->available() > 0);
 
   while (true) {
     // Bridge interrupt:
@@ -43,15 +43,15 @@ void BridgeClass::begin() {
 
     // Bridge startup:
     // - If the bridge is not running starts it safely
-    stream.print(CTRL_C);
+    stream->print(CTRL_C);
     delay(250);
-    stream.print(F("\n"));
+    stream->print(F("\n"));
     delay(250);
-    stream.print(F("\n"));
+    stream->print(F("\n"));
     delay(500);
     // Wait for OpenWRT message
     // "Press enter to activate console"
-    stream.print(F("run-bridge\n"));
+    stream->print(F("run-bridge\n"));
     delay(500);
     dropAll();
 
@@ -125,8 +125,8 @@ void BridgeClass::crcReset() {
 }
 
 void BridgeClass::crcWrite() {
-  stream.write((char)(CRC >> 8));
-  stream.write((char)(CRC & 0xFF));
+  stream->write((char)(CRC >> 8));
+  stream->write((char)(CRC & 0xFF));
 }
 
 bool BridgeClass::crcCheck(uint16_t _CRC) {
@@ -143,24 +143,24 @@ uint16_t BridgeClass::transfer(const uint8_t *buff1, uint16_t len1,
   for ( ; retries < max_retries; retries++, delay(100), dropAll() /* Delay for retransmission */) {
     // Send packet
     crcReset();
-    stream.write((char)0xFF);                // Start of packet (0xFF)
+    stream->write((char)0xFF);                // Start of packet (0xFF)
     crcUpdate(0xFF);
-    stream.write((char)index);               // Message index
+    stream->write((char)index);               // Message index
     crcUpdate(index);
-    stream.write((char)((len >> 8) & 0xFF)); // Message length (hi)
+    stream->write((char)((len >> 8) & 0xFF)); // Message length (hi)
     crcUpdate((len >> 8) & 0xFF);
-    stream.write((char)(len & 0xFF));        // Message length (lo)
+    stream->write((char)(len & 0xFF));        // Message length (lo)
     crcUpdate(len & 0xFF);
     for (uint16_t i = 0; i < len1; i++) { // Payload
-      stream.write((char)buff1[i]);
+      stream->write((char)buff1[i]);
       crcUpdate(buff1[i]);
     }
     for (uint16_t i = 0; i < len2; i++) { // Payload
-      stream.write((char)buff2[i]);
+      stream->write((char)buff2[i]);
       crcUpdate(buff2[i]);
     }
     for (uint16_t i = 0; i < len3; i++) { // Payload
-      stream.write((char)buff3[i]);
+      stream->write((char)buff3[i]);
       crcUpdate(buff3[i]);
     }
     crcWrite();                     // CRC
@@ -227,22 +227,26 @@ int BridgeClass::timedRead(unsigned int timeout) {
   int c;
   unsigned long _startMillis = millis();
   do {
-    c = stream.read();
+    c = stream->read();
     if (c >= 0) return c;
   } while (millis() - _startMillis < timeout);
   return -1;     // -1 indicates timeout
 }
 
 void BridgeClass::dropAll() {
-  while (stream.available() > 0) {
-    stream.read();
+  while (stream->available() > 0) {
+    stream->read();
   }
 }
 
 // Bridge instance
-#if defined(__AVR_ATmega32U4__) || defined(SERIAL_PORT_USBVIRTUAL)
+#if defined(SERIAL_PORT_LINUXBRIDGE)
+// Arduino Yun or other boards that explicitly specify the default port
+SerialBridgeClass Bridge(SERIAL_PORT_LINUXBRIDGE);
+#elif defined(__AVR_ATmega32U4__) || defined(SERIAL_PORT_USBVIRTUAL)
 // Leonardo variants (where HardwareSerial is Serial1)
 SerialBridgeClass Bridge(Serial1);
 #else
+// Anything else, fall back to Serial
 SerialBridgeClass Bridge(Serial);
 #endif
