@@ -19,6 +19,10 @@
 #ifndef BRIDGE_H_
 #define BRIDGE_H_
 
+#ifndef BRIDGE_BAUDRATE
+#define BRIDGE_BAUDRATE 250000
+#endif
+
 #include <Arduino.h>
 #include <Stream.h>
 
@@ -96,7 +100,7 @@ class SerialBridgeClass : public BridgeClass {
       // Empty
     }
 
-    void begin(unsigned long baudrate = 250000) {
+    void begin(unsigned long baudrate = BRIDGE_BAUDRATE) {
       serial->begin(baudrate);
       BridgeClass::begin();
     }
@@ -108,7 +112,7 @@ class SerialBridgeClass : public BridgeClass {
       BridgeClass::begin();
     }
 
-    void begin(HardwareSerial &_serial, unsigned long baudrate = 250000) {
+    void begin(HardwareSerial &_serial, unsigned long baudrate = BRIDGE_BAUDRATE) {
       serial = &_serial;
       serial->begin(baudrate);
       stream = &_serial;
